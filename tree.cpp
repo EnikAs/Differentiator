@@ -1,6 +1,5 @@
 #include "tree.h"
 
-static      int          TreeNodeFree            (Node* node);
 static      size_t       scanf_file_size         (FILE* input_file);
 static      void         buffer_clean            (char* buffer);
 static      int          VisitDumpPrint          (const Node* node);
@@ -258,16 +257,18 @@ int scanf_data_diffrent_type (const char* buffer, Node* node, int* buf_pos)
     {
         node->data_type = CONSTANT;
     }
-    else 
+    else if (sscanf(&buffer[*buf_pos], "%c", &node->data.ch) == 1)
     {
-        sscanf(&buffer[*buf_pos], "%c", &node->data.ch);
-        
+
         if (node->data.ch == 'x')
             node->data_type = VARIABLE;
 
         else
             node->data_type = OPERATOR;
     }
+    else 
+        assert(0 && "Incorrect input!!!");
+        
     return 0;
 }
 
@@ -283,7 +284,7 @@ int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
                     main_node->left = tmp_left_node;
                     TreeReadNodeIN(buffer, tmp_left_node, buf_pos);
                 }
-            else 
+            else
                 {
                     scanf_data_diffrent_type(buffer, main_node, buf_pos);
                     trash_skip(buffer, buf_pos, LETTERS);
@@ -399,18 +400,24 @@ size_t scanf_file_size (FILE* input_file)
 
 int FreeTheTree (Tree* tree)
 {
-    TreeNodeFree(tree->peak);
+    TreeNodesFree(tree->peak);
 
     free(tree);
 }
 
-int TreeNodeFree (Node* node)
+int TreeNodesFree (Node* node)
 {
     if (node->left)
-        TreeNodeFree(node->left);
+    {
+        TreeNodesFree(node->left);
+        node->left = NULL;
+    }
     
     if (node->right)
-        TreeNodeFree(node->right);
+    {
+        TreeNodesFree(node->right);
+        node->right = NULL;
+    }
 
 #ifdef TYPE_CHAR
 
@@ -420,4 +427,24 @@ int TreeNodeFree (Node* node)
 #endif
 
     free(node);
+}
+
+void CreateTreeFile (FILE* inputfile, FILE* outputfile)
+{
+    char tmp_ch = 0;
+    tmp_ch = fgetc(inputfile);
+    while (tmp_ch != EOF)
+    {
+        //printf("%c", tmp_ch);
+        if (tmp_ch == '{' || tmp_ch == '}')
+        {
+            fprintf(outputfile, "\n%c\n", tmp_ch);
+        }
+
+        else
+        {
+            fprintf(outputfile, "%c", tmp_ch);
+        }
+        tmp_ch = fgetc(inputfile);
+    }
 }

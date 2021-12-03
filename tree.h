@@ -43,7 +43,9 @@ enum operator_type
     SUB = '-',
     ADD = '+',
     DIV = '/',
-    DEG = '^'
+    DEG = '^',
+    SIN = 's',
+    COS = 'c'
 };
 
 enum trash_skip_key
@@ -69,7 +71,6 @@ struct Node
     Node* left = NULL;
     Node* right = NULL;
     node_data data = {};
-    int data_calloc = 0;
     int data_type = 0;
 };
 
@@ -99,5 +100,8 @@ int     TreeReadNodeIN           (const char* buffer, Node* main_node, int* buf_
 
 int     FreeTheTree              (Tree* tree);
 
+int     TreeNodesFree            (Node* node);
+
+void    CreateTreeFile           (FILE* inputfile, FILE* outputfile);
 
 #endif
