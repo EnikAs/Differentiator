@@ -17,4 +17,16 @@ void optimisation_operators (Node* node, int* val);
 
 void optimisate_all (Node* node);
 
+int VisitPrintTex (Node* node, FILE* texfile);
+
+void PrintData(Node* node, FILE* texfile);
+
+void PrintTexStart (FILE* texfile);
+
+void PrintTexTreeBefore (Node* node, FILE* texfile);
+
+void PrintTexTreeAfter (Node* node, FILE* texfile);
+
+void PrintTexEnd (FILE* texfile);
+
 #endif

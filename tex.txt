@@ -1,0 +1,17 @@
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+
+\title{Math)))}
+
+\begin{document}
+
+\maketitle
+\section{Before dif}
+
+$\frac{(sin((x+x^{2}))+100)}{x^{9}}$
+\section{After dif}
+
+$\frac{(cos((x+x^{2}))\cdot (-1)\cdot (1+2\cdot x)\cdot x^{9}-9\cdot x^{8}\cdot (sin((x+x^{2}))+100))}{x^{9}^{2}}$
+\end{document}

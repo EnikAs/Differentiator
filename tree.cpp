@@ -7,23 +7,6 @@ static      void         trash_skip              (const char* buffer, int* buf_p
 
 FILE* log_file = fopen("logfile.txt", "w");
 
-int VisitPrintFilePRE(const Node* node, FILE* treefile)
-{
-    if (!node)
-        return 0; // TODO Errors
-    fprintf(treefile, "\n{\n");
-
-    fprintf(treefile, "%s", node->data);
-    if (node->left)
-        VisitPrintFilePRE(node->left, treefile);
-
-    if (node->right)    
-        VisitPrintFilePRE(node->right, treefile);
-
-    fprintf(treefile, "\n}\n");
-    return 0;
-}
-
 int VisitPrintFileIN(const Node* node, FILE* treefile)
 {
     if (!node)
@@ -127,70 +110,6 @@ int TreeSetNode (Node* node, char data, Node* leftptr, Node* rightptr)
     return 0;
 }
 
-#ifdef TYPE_CHAR
-
-int TreeSetNode (Node* node, char* value, Node* leftptr, Node* rightptr)
-{
-    //node->data = (telem_t) calloc(strlen(value), sizeof(char));
-    if (node->data == NULL)
-    {
-        assert(0 && "Calloc in SetNode ERROR!");
-    }
-
-    node->data = value;
-    node->left = leftptr;
-    node->right = rightptr;
-    return 0;
-}
-
-Tree* TreeReadFilePRE (FILE* treefile)
-{
-    int buf_pos = 0;
-    int buf_size = scanf_file_size(treefile);
-    char* buffer = (char*) calloc(buf_size, sizeof(char));
-    if (buffer == NULL)
-    {
-        printf("Buffer callocation error!");
-        return NULL;
-    }
-    fread(buffer, sizeof(char), buf_size, treefile);
-
-    buffer_clean(buffer);
-
-    Tree* tree = (Tree*) calloc(1, sizeof(Tree));
-    if (tree == NULL)
-    {
-        printf("Tree callocation error!");
-        return NULL;
-    }
-    tree->peak = (Node*) calloc(1, sizeof(Node));
-    if (tree->peak == NULL)
-    {
-        printf("Main node callocation error!");
-        return NULL;
-    }
-
-    if (buffer[0] != '\0' || buffer[1] != '{' || buffer[2] != '\0')
-        return NULL;
-
-    buf_pos = 3;
-    tree->peak->data = &buffer[buf_pos];
-    while(1)
-    {
-        if (buffer[buf_pos] == '{' || buffer[buf_pos] == '}')
-            break;
-        buf_pos++;  
-        
-    }
-
-    if (buffer[buf_pos] == '{')
-        TreeReadNode(buffer, tree->peak, &buf_pos);
-
-    return tree;
-}
-
-#endif
-
 void trash_skip(const char* buffer, int* buf_pos, int key)
 {
     if (key == ZERO_ONLY)
@@ -206,6 +125,8 @@ void trash_skip(const char* buffer, int* buf_pos, int key)
     {
         while (buffer[*buf_pos] != '\0')
         {
+            if (buffer[*buf_pos] == 's')
+                break;
             *buf_pos += 1;
         }
 
@@ -257,6 +178,7 @@ int scanf_data_diffrent_type (const char* buffer, Node* node, int* buf_pos)
     {
         node->data_type = CONSTANT;
     }
+
     else if (sscanf(&buffer[*buf_pos], "%c", &node->data.ch) == 1)
     {
 
@@ -274,28 +196,55 @@ int scanf_data_diffrent_type (const char* buffer, Node* node, int* buf_pos)
 
 int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
 {
+    PRINT_LINE
+    printf("->%c<-", buffer[*buf_pos]);
     if (buffer[*buf_pos] == '{')
         {
             trash_skip(buffer, buf_pos, LETTERS);
-            
-            if (buffer[*buf_pos] == '{')
-                {
-                    Node* tmp_left_node = (Node*) calloc(1, sizeof(Node));
-                    main_node->left = tmp_left_node;
-                    TreeReadNodeIN(buffer, tmp_left_node, buf_pos);
-                }
+            printf("aaa %c aaa", buffer[*buf_pos]);
+            if (buffer[*buf_pos] == 's')
+            {
+                kostyl_trig(buffer, main_node, buf_pos, LEFT, SIN);
+            }
+
+            else if (buffer[*buf_pos] == 'c')
+            {
+                kostyl_trig(buffer, main_node, buf_pos, LEFT, COS);
+            }
+
+            else if (buffer[*buf_pos] == '{')
+            {
+                Node* tmp_left_node = (Node*) calloc(1, sizeof(Node));
+                main_node->left = tmp_left_node;
+                TreeReadNodeIN(buffer, tmp_left_node, buf_pos);
+            }
             else
-                {
+            {
                     scanf_data_diffrent_type(buffer, main_node, buf_pos);
                     trash_skip(buffer, buf_pos, LETTERS);
                     if (buffer[*buf_pos] != '}')
                         printf("\nNE POVEZLO\n");
                     trash_skip(buffer, buf_pos, LETTERS);
                     return 0;
-                }
+            }
             scanf_data_diffrent_type(buffer, main_node, buf_pos);
-            trash_skip(buffer, buf_pos, LETTERS);
-            if (buffer[*buf_pos] == '{')
+            if (buffer[*buf_pos + 1] == 's')
+                *buf_pos += 1;
+            else
+                trash_skip(buffer, buf_pos, LETTERS);
+            printf("->%c<-", buffer[*buf_pos]);
+            
+            if (buffer[*buf_pos] == 's')
+            {
+                kostyl_trig(buffer, main_node, buf_pos, RIGHT, SIN);
+            }
+
+            else if (buffer[*buf_pos] == 'c')
+            {
+                kostyl_trig(buffer, main_node, buf_pos, RIGHT, COS);
+            }
+            
+            else if (buffer[*buf_pos] == '{')
             {
                 Node* tmp_right_node = (Node*) calloc(1, sizeof(Node));
                 main_node->right = tmp_right_node;
@@ -308,8 +257,67 @@ int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
                 return 0;
             }
 
-        }  
+        } 
+    
     return 0;// END
+}
+
+int kostyl_trig (const char* buffer, Node* main_node, int* buf_pos, int key, int key_tr)
+{
+    if (key == RIGHT)
+    {
+        if (key_tr == SIN)
+        {
+            Node* tmp_right_node = (Node*) calloc(1, sizeof(Node));
+            main_node->right = tmp_right_node;
+            tmp_right_node->data_type = OPERATOR;
+            tmp_right_node->data.ch = 's';
+            *buf_pos += 2;
+            Node* tmp_sin_node = (Node*) calloc(1, sizeof(Node));
+            tmp_right_node->left = tmp_sin_node;
+            TreeReadNodeIN(buffer, tmp_sin_node, buf_pos);
+        }
+
+        else if (key_tr == COS)
+        {
+            Node* tmp_right_node = (Node*) calloc(1, sizeof(Node));
+            main_node->right = tmp_right_node;
+            tmp_right_node->data_type = OPERATOR;
+            tmp_right_node->data.ch = 'c';
+            *buf_pos += 2;
+            Node* tmp_cos_node = (Node*) calloc(1, sizeof(Node));
+            tmp_right_node->left = tmp_cos_node;
+            TreeReadNodeIN(buffer, tmp_cos_node, buf_pos);
+        }
+    }
+
+    else
+    {
+        if (key_tr == SIN)
+        {
+            Node* tmp_left_node = (Node*) calloc(1, sizeof(Node));
+            main_node->left = tmp_left_node;
+            tmp_left_node->data_type = OPERATOR;
+            tmp_left_node->data.ch = 's';
+            *buf_pos += 2;
+            Node* tmp_sin_node = (Node*) calloc(1, sizeof(Node));
+            tmp_left_node->left = tmp_sin_node;
+            TreeReadNodeIN(buffer, tmp_sin_node, buf_pos);
+        }
+
+        else if (key_tr == COS)
+        {
+            PRINT_LINE
+            Node* tmp_left_node = (Node*) calloc(1, sizeof(Node));
+            main_node->left = tmp_left_node;
+            tmp_left_node->data_type = OPERATOR;
+            tmp_left_node->data.ch = 'c';
+            *buf_pos += 2;
+            Node* tmp_cos_node = (Node*) calloc(1, sizeof(Node));
+            tmp_left_node->left = tmp_cos_node;
+            TreeReadNodeIN(buffer, tmp_cos_node, buf_pos);
+        }
+    }
 }
 
 void buffer_clean (char* buffer)
@@ -324,67 +332,6 @@ void buffer_clean (char* buffer)
     }
 
 }
-#ifdef TYPE_CHAR
-int TreeReadNodePRE (const char* buffer, Node* main_node, int* buf_pos)
-{
-    if (buffer[*buf_pos] == '{')
-    {
-        Node* tmp_left_node = (Node*) calloc(1, sizeof(Node));
-        if (tmp_left_node == NULL)
-        {
-            printf("Left node callocation error!");
-            return CALLOC_ERROR;
-        }
-        main_node->left = tmp_left_node;
-        *buf_pos += 2;// переставляем указатель на начало названия
-        tmp_left_node->data = (char*) &buffer[*buf_pos];
-
-        while(isalpha(buffer[*buf_pos]) > 0 || buffer[*buf_pos] == ' ')//пропуск слова
-            *buf_pos += 1;
-
-        *buf_pos += 1; // переход через '\0'
-        if (buffer[*buf_pos] == '{') TreeReadNode(buffer, tmp_left_node, buf_pos);
-    }
-    if (buffer[*buf_pos] == '}')// skip spases
-    {
-        if (buffer[*buf_pos + 3] == '}')
-            return 0;
-        else
-            *buf_pos += 3;
-    }
-    if (buffer[*buf_pos] == '{')
-    {
-        Node* tmp_right_node = (Node*) calloc(1, sizeof(Node));
-        if (tmp_right_node == NULL)
-        {
-            printf("Right node callocation error!");
-            return CALLOC_ERROR;
-        }
-
-        main_node->right = tmp_right_node;
-        *buf_pos += 2;// переставляем указатель на начало названия
-        tmp_right_node->data = (char*) &buffer[*buf_pos];
-
-        while(isalpha(buffer[*buf_pos]) > 0 || buffer[*buf_pos] == ' ')// пропуск слова
-            *buf_pos += 1;
-
-        *buf_pos += 1; // переход через '\0'
-        if (buffer[*buf_pos] == '{') TreeReadNode(buffer, tmp_right_node, buf_pos);
-    }
-    if (buffer[*buf_pos] == '}')
-    {
-        if (buffer[*buf_pos + 3] == '}')
-        {
-            *buf_pos += 3;
-            return 0;
-        }
-        else
-            assert(0 && "Check your <C> drive)))))");
-    }
-
-    return 0;// END
-}
-#endif
 
 size_t scanf_file_size (FILE* input_file)
 {
@@ -436,6 +383,12 @@ void CreateTreeFile (FILE* inputfile, FILE* outputfile)
     while (tmp_ch != EOF)
     {
         //printf("%c", tmp_ch);
+        /*
+        if (tmp_ch == 's')
+        {
+            fprintf(outputfile, "\n%c\n");
+        }
+        */
         if (tmp_ch == '{' || tmp_ch == '}')
         {
             fprintf(outputfile, "\n%c\n", tmp_ch);
