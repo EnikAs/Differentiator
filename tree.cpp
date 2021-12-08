@@ -65,11 +65,8 @@ int VisitDumpPrint(const Node* node)
 
 int TreeDump (Node* node)
 {
-    PRINT_LINE
     fprintf(log_file, "digraph tree {\n");
-    PRINT_LINE
     VisitDumpPrint(node);
-    PRINT_LINE
     fprintf(log_file, "\n}");
     
     fclose(log_file);
@@ -196,12 +193,9 @@ int scanf_data_diffrent_type (const char* buffer, Node* node, int* buf_pos)
 
 int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
 {
-    PRINT_LINE
-    printf("->%c<-", buffer[*buf_pos]);
     if (buffer[*buf_pos] == '{')
         {
             trash_skip(buffer, buf_pos, LETTERS);
-            printf("aaa %c aaa", buffer[*buf_pos]);
             if (buffer[*buf_pos] == 's')
             {
                 kostyl_trig(buffer, main_node, buf_pos, LEFT, SIN);
@@ -222,8 +216,10 @@ int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
             {
                     scanf_data_diffrent_type(buffer, main_node, buf_pos);
                     trash_skip(buffer, buf_pos, LETTERS);
+
                     if (buffer[*buf_pos] != '}')
                         printf("\nNE POVEZLO\n");
+
                     trash_skip(buffer, buf_pos, LETTERS);
                     return 0;
             }
@@ -232,7 +228,6 @@ int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
                 *buf_pos += 1;
             else
                 trash_skip(buffer, buf_pos, LETTERS);
-            printf("->%c<-", buffer[*buf_pos]);
             
             if (buffer[*buf_pos] == 's')
             {
@@ -251,15 +246,18 @@ int TreeReadNodeIN (const char* buffer, Node* main_node, int* buf_pos)
                 TreeReadNodeIN(buffer, tmp_right_node, buf_pos);
                 
                 if (buffer[*buf_pos] != '}')
+                {
                     printf("It is not '}' it is %c", buffer[*buf_pos]);
-                
+                    assert(0 && "Incorrect input");
+                }
+
                 trash_skip(buffer, buf_pos, LETTERS);
                 return 0;
             }
 
         } 
     
-    return 0;// END
+    return 0;
 }
 
 int kostyl_trig (const char* buffer, Node* main_node, int* buf_pos, int key, int key_tr)
@@ -382,13 +380,6 @@ void CreateTreeFile (FILE* inputfile, FILE* outputfile)
     tmp_ch = fgetc(inputfile);
     while (tmp_ch != EOF)
     {
-        //printf("%c", tmp_ch);
-        /*
-        if (tmp_ch == 's')
-        {
-            fprintf(outputfile, "\n%c\n");
-        }
-        */
         if (tmp_ch == '{' || tmp_ch == '}')
         {
             fprintf(outputfile, "\n%c\n", tmp_ch);

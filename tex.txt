@@ -3,15 +3,18 @@
 
 \usepackage[utf8]{inputenc}
 
-\title{Math)))}
+\title{The most complete guide to differentiation}
 
 \begin{document}
 
-\maketitle
+\maketitle\newpage
 \section{Before dif}
 
-$\frac{(sin((x+x^{2}))+100)}{x^{9}}$
+$\frac{(sin(x+x^{2.0})+100.0)}{x}$
 \section{After dif}
 
-$\frac{(cos((x+x^{2}))\cdot (-1)\cdot (1+2\cdot x)\cdot x^{9}-9\cdot x^{8}\cdot (sin((x+x^{2}))+100))}{x^{9}^{2}}$
+$\frac{((cos(x+x^{2.0})\cdot (1.0+2.0\cdot x^{(2.0-1.0)}\cdot 1.0)+0.0)\cdot x-1.0\cdot (sin(x+x^{2.0})+100.0))}{x^{2.0}}$
+\section{Using simple, well-known transformations, it is easy to notice that}
+
+$\frac{(cos(x+x^{2.0})\cdot (1.0+2.0\cdot x)\cdot x-(sin(x+x^{2.0})+100.0))}{x^{2.0}}$
 \end{document}

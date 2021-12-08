@@ -18,6 +18,9 @@ node->right = NULL;
 
 Node* NEW_MUL (Node* node1, Node* node2)
 {
+    assert(node1);
+    assert(node2);
+    
     Node* tmp_node      = (Node*) calloc(1, sizeof(Node));
     tmp_node->data_type = OPERATOR;
     tmp_node->data.ch   = MUL;
@@ -118,9 +121,9 @@ int differentiator (FILE* inputfile)
 
     dtree->peak = dif(tree->peak);
 
-    optimisate_all(dtree->peak);
-
     PrintTexTreeAfter(dtree->peak, texfile);
+
+    optimisate_all(dtree->peak, texfile);
 
     PrintTexEnd(texfile);
 
@@ -139,43 +142,34 @@ Node* dif(Node* node)
     switch(node->data_type)
     {
         case CONSTANT:
-            PRINT_LINE
             return NEW_CONST(0.0);
 
         case VARIABLE:
-            PRINT_LINE
             return NEW_CONST(1.0);
 
         case OPERATOR:
             switch(node->data.ch)
             {
                 case MUL:
-                    PRINT_LINE
                     return NEW_ADD(NEW_MUL(DL, CR), NEW_MUL(CL, DR));
 
                 case SUB:
-                    PRINT_LINE
                     return NEW_SUB(DL, DR);
 
                 case ADD:
-                    PRINT_LINE
                     return NEW_ADD(DL, DR);
 
                 case DIV:
-                    PRINT_LINE
                     return NEW_DIV(NEW_SUB(NEW_MUL(DL, CR), NEW_MUL(DR, CL)), NEW_DEG(CR, NEW_CONST(2.0)));
 
                 case DEG:
-                    PRINT_LINE
                     return NEW_MUL(NEW_MUL(CR, NEW_DEG(CL, NEW_SUB(CR, NEW_CONST(1.0)))), DL);
                 
                 case SIN:
-                    PRINT_LINE
-                    return NEW_MUL(NEW_MUL(NEW_COS(NL), NEW_CONST(-1)), DL);
+                    return NEW_MUL(NEW_COS(NL), DL);
 
                 case COS:
-                    PRINT_LINE
-                    return NEW_MUL(NEW_SIN(NL), DL);
+                    return NEW_MUL(NEW_MUL(NEW_SIN(NL), NEW_CONST(-1)), DL);
 
             }
 
@@ -197,7 +191,6 @@ Node* copy_node (Node* node)
     else 
         tmp_node->data.db = node->data.db;
     
-
     if (NL)
     {
         tmp_node->left = copy_node(NL);
@@ -211,7 +204,7 @@ Node* copy_node (Node* node)
     return tmp_node;
 }
 
-void optimisation_values (Node* node, int* val)
+void optimisation_values (Node* node, int* opt_cunt)
 {
     if (!NL && !NR)
         return;
@@ -221,71 +214,66 @@ void optimisation_values (Node* node, int* val)
         switch(node->data.ch)
         {
             case MUL:
-            PRINT_LINE
             node->data_type = CONSTANT;
             node->data.db = LND(node) * RND(node);
             FREE_L_R(node)
             break;
 
             case SUB:
-            PRINT_LINE
             node->data_type = CONSTANT;
             node->data.db = LND(node) - RND(node);
             FREE_L_R(node)
             break;
 
             case ADD:
-            PRINT_LINE
             node->data_type = CONSTANT;
             node->data.db = LND(node) + RND(node);
             FREE_L_R(node)
             break;
 
             case DIV:
-            PRINT_LINE
             node->data_type = CONSTANT;
             node->data.db = LND(node) / RND(node);
             FREE_L_R(node)
             break;
 
             case DEG:
-            PRINT_LINE
             node->data_type = CONSTANT;
             node->data.db = pow(LND(node), RND(node));
             FREE_L_R(node)
             break;
 
         }
-        *val += 1;
+
+        *opt_cunt += 1;
+
     }
     if (NL)
-        optimisation_values(NL, val);
+        optimisation_values(NL, opt_cunt);
     
     if (NR)
-        optimisation_values(NR, val);
+        optimisation_values(NR, opt_cunt);
     
 }
 
-void optimisation_operators (Node* node, int* val)
+void optimisation_operators (Node* node, int* opt_cunt)
 {
-    PRINT_LINE
+    
     if (NL == NULL || NR == NULL)
     {
         if (NL)
-        optimisation_operators(NL, val);
+        optimisation_operators(NL, opt_cunt);
     
         if (NR)
-        optimisation_operators(NR, val);
+        optimisation_operators(NR, opt_cunt);
     }
     else
     {
-        PRINT_LINE
         if (node->data_type == OPERATOR && NL->data.db == 0 
         || node->data_type == OPERATOR && NR->data.db == 0)
         {
             if (node->data.ch == MUL)
             {
-                PRINT_LINE
                 node->data_type = CONSTANT;
                 node->data.db = 0;
 
@@ -294,12 +282,12 @@ void optimisation_operators (Node* node, int* val)
                 
                 NL = NULL;
                 NR = NULL;
-                *val += 1;
+
+                *opt_cunt += 1;
             }
 
             else if (node->data.ch == DEG)
             {
-                PRINT_LINE
                 node->data_type = CONSTANT;
                 node->data.db = 1;
 
@@ -308,12 +296,12 @@ void optimisation_operators (Node* node, int* val)
                 
                 NL = NULL;
                 NR = NULL;
-                *val += 1;
+
+                *opt_cunt += 1;
             }
 
             else if (node->data.ch == SUB || node->data.ch == ADD)
             {
-                PRINT_LINE
                 if (NL->data.db == 0)
                 {
                     Node* tmpnd = NR;
@@ -324,7 +312,8 @@ void optimisation_operators (Node* node, int* val)
                     node->data = tmpnd->data;
                     NL = tmpnd->left;
                     NR = tmpnd->right;
-                    *val += 1;
+
+                    *opt_cunt += 1;
                 }
 
                 else if (NR->data.db == 0)
@@ -337,7 +326,8 @@ void optimisation_operators (Node* node, int* val)
                     node->data.db = tmpnd->data.db;
                     NL = tmpnd->left;
                     NR = tmpnd->right;
-                    *val += 1;
+
+                    *opt_cunt += 1;
                 }
             }
         }
@@ -346,7 +336,6 @@ void optimisation_operators (Node* node, int* val)
         {
             if (node->data.ch == MUL || node->data.ch == DIV || node->data.ch == DEG)
             {
-                PRINT_LINE
                 Node* tmpnd = NR;
 
                 TreeNodesFree(NL);
@@ -355,7 +344,8 @@ void optimisation_operators (Node* node, int* val)
                 node->data = tmpnd->data;
                 NL = tmpnd->left;
                 NR = tmpnd->right;
-                *val += 1;
+
+                *opt_cunt += 1;
             }
         }
         
@@ -364,7 +354,6 @@ void optimisation_operators (Node* node, int* val)
             
             if (node->data.ch == MUL || node->data.ch == DIV || node->data.ch == DEG)
             {
-                PRINT_LINE
                 Node* tmpnd = NL;
 
                 TreeNodesFree(NR);
@@ -378,20 +367,20 @@ void optimisation_operators (Node* node, int* val)
                 tmpnd->right = NULL;
                 free(tmpnd);
 
-                *val += 1;
+                *opt_cunt += 1;
             }
         
         }
 
         if (NL)
-            optimisation_operators(NL, val);
+            optimisation_operators(NL, opt_cunt);
         
         if (NR)
-            optimisation_operators(NR, val);
+            optimisation_operators(NR, opt_cunt);
     }
 }       
 
-void optimisate_all (Node* node)
+void optimisate_all (Node* node, FILE* texfile)
 {
     int optimisation_cunt = 1;
 
@@ -401,6 +390,8 @@ void optimisate_all (Node* node)
         optimisation_values(node, &optimisation_cunt);
         optimisation_operators(node, &optimisation_cunt);
     }
+
+    PrintTexTreeBetween(node, texfile);
 }
 
 int VisitPrintTex (Node* node, FILE* texfile)
@@ -410,19 +401,18 @@ int VisitPrintTex (Node* node, FILE* texfile)
         if (node->data.ch == SIN || node->data.ch == COS)
         {
             if (node->data.ch == SIN)
-            fprintf(texfile, "sin(");
+            fprintf(texfile, "sin");
 
             if (node->data.ch == COS)
-            fprintf(texfile, "cos(");
+            fprintf(texfile, "cos");
 
             if(NL)
                 VisitPrintTex(NL, texfile);
 
             if(NR)
                 VisitPrintTex(NR, texfile);
-            
-            fprintf(texfile, ")");
         }
+
         else if (node->data.ch == ADD || node->data.ch == SUB)
         {
             fprintf(texfile, "(");
@@ -437,6 +427,7 @@ int VisitPrintTex (Node* node, FILE* texfile)
             
             fprintf(texfile, ")");
         }
+
         else if (node->data.ch == DIV)
         {
             fprintf(texfile, "\\frac{");
@@ -451,6 +442,7 @@ int VisitPrintTex (Node* node, FILE* texfile)
             
             fprintf(texfile, "}");
         }
+
         else if (node->data.ch == DEG)
         {
             if(NL)
@@ -463,6 +455,7 @@ int VisitPrintTex (Node* node, FILE* texfile)
             
             fprintf(texfile, "}");
         }
+
         else
         {
             if(NL)
@@ -491,11 +484,11 @@ void PrintData(Node* node, FILE* texfile)
     if (node->data_type == CONSTANT)
     {  
         if(node->data.db >= 0)
-            fprintf(texfile, "%.0lf", node->data.db);
+            fprintf(texfile, "%.1lf", node->data.db);
         else
-            fprintf(texfile, "(%.0lf)", node->data.db);
+            fprintf(texfile, "(%.1lf)", node->data.db);
     }
-    
+
     else if (node->data_type == OPERATOR)
     {
         if (node->data.ch == MUL)
@@ -503,7 +496,6 @@ void PrintData(Node* node, FILE* texfile)
         else
             fprintf(texfile, "%c", node->data.ch);
     }
-        
 
     else if (node->data_type == VARIABLE)
         fprintf(texfile, "%c", node->data.ch);
@@ -512,7 +504,12 @@ void PrintData(Node* node, FILE* texfile)
 
 void PrintTexStart (FILE* texfile)
 {
-    fprintf(texfile, "\n\\documentclass{article}\n\n\\usepackage[utf8]{inputenc}\n\n\\title{Math)))}\n\n\\begin{document}\n\n\\maketitle");
+    fprintf(texfile, "\n\\documentclass{article}\n\n"
+    "\\usepackage[utf8]{inputenc}\n\n"
+    "\\title{The most complete guide to differentiation}\n\n"
+    "\\begin{document}\n\n"
+    "\\maketitle"
+    "\\newpage");
 }
 
 void PrintTexTreeBefore (Node* node, FILE* texfile)
@@ -536,4 +533,12 @@ void PrintTexTreeAfter (Node* node, FILE* texfile)
 void PrintTexEnd (FILE* texfile)
 {
     fprintf(texfile, "\n\\end{document}");
+}
+
+void PrintTexTreeBetween (Node* node, FILE* texfile)
+{
+    fprintf(texfile, "\n\\section{Using simple, well-known transformations, it is easy to notice that}\n\n");
+    fprintf(texfile, "$");
+    VisitPrintTex(node, texfile);
+    fprintf(texfile, "$");
 }
